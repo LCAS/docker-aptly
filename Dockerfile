@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:buster
+FROM debian:latest
 
-LABEL maintainer="urpylka@gmail.com"
+LABEL maintainer="marc@hanheide.net"
 
 ARG DEBIAN_FRONTEND=noninteractive
 

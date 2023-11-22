@@ -2,7 +2,7 @@ version: '3'
 services:
   aptly:
     container_name: aptly
-    image: urpylka/aptly:latest
+    image: lcas.lincoln.ac.uk/lcas/aptly:master
     build:
       context: ./
       dockerfile: Dockerfile
