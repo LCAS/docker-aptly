@@ -1,0 +1,6 @@
+Published repositories:
+  * hurga2/jammy [amd64, arm64] publishes {lcas: [merged_202402291141]: Merged from sources: 'lcas_202402291141', 'nvidia_cuda_2204_x86_64_202402291141'}
+  * lcas/bionic (origin: ROS) [amd64] publishes {main: [lcas_old_20231123]: Snapshot from mirror [lcas_old_mirror]: http://lcas.lincoln.ac.uk/ubuntu/main/ bionic}
+  * lcas/jammy [amd64, arm64, i386, source] publishes {lcas: [lcas_ros]: L-CAS ROS distribution}
+  * restricted/jammy [amd64, arm64, i386, source] publishes {lcas: [lcas_ros_restricted]: L-CAS ROS RESTRICTED distribution}
+  * staging/jammy [amd64, arm64, i386, source] publishes {lcas: [lcas_ros]: L-CAS ROS distribution}

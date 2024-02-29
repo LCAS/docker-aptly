@@ -23,4 +23,4 @@ done
 MERGED_SNAPSHOT="release_${TIMESTAMP}"
 
 aptly snapshot merge $MERGED_SNAPSHOT $ALL_SNAPSHOTS
-aptly publish snapshot -distribution ${DISTRO} $MERGED_SNAPSHOT
+aptly publish snapshot -architectures amd64,arm64 -distribution ${DISTRO} $MERGED_SNAPSHOT

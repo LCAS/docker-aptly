@@ -19,4 +19,13 @@ services:
 
     # If want to use additional environments,
     # you can set them in .env file
+  cron:
+    container_name: aptly-cron
+    image: lcas.lincoln.ac.uk/lcas/aptly-cron:master
+    build:
+      context: ./cronjobs
+      dockerfile: ./Dockerfile.cron
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
