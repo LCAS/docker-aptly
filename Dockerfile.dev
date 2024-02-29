@@ -1,0 +1,98 @@
+# Copyright 2018-2020 Artem B. Smirnov
+# Copyright 2018 Jon Azpiazu
+# Copyright 2016 Bryan J. Hong
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM ubuntu:jammy as prepare
+
+LABEL maintainer="marc@hanheide.net"
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Update APT repository & install packages (except aptly)
+RUN apt-get -q update \
+  && apt-get -y install \
+    bzip2 \
+    gnupg2 \
+    gpgv \
+    graphviz \
+    supervisor \
+    nginx \
+    curl \
+    wget \
+    less \
+    tmux \
+    git \
+    xz-utils \
+    apt-utils \
+    gettext-base \
+    build-essential \
+    bash-completion \
+    python3-venv
+
+FROM prepare as build
+
+RUN mkdir /build
+WORKDIR /build
+RUN wget -O go.tgz https://go.dev/dl/go1.22.0.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go.tgz && \
+    rm go.tgz
+
+RUN git clone https://github.com/aptly-dev/aptly.git
+WORKDIR /build/aptly
+ENV PATH=$PATH:/usr/local/go/bin
+RUN git checkout 1001ca92c85ac8e6c202c9069669496176cf5fb4
+RUN make prepare dev system/env \
+    && make modules \
+    && make install
+
+FROM prepare as final
+COPY --from=build /root/go/bin/aptly /usr/bin/
+
+# Configure Nginx
+RUN rm /etc/nginx/sites-enabled/*
+
+# Create volume
+VOLUME [ "/opt/aptly" ]
+ENV GNUPGHOME="/opt/aptly/gpg"
+
+# Install configurations
+COPY assets/aptly.conf /etc/aptly.conf
+COPY assets/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY assets/supervisord.web.conf /etc/supervisor/conf.d/web.conf
+
+# Install scripts
+COPY assets/*.sh /opt/
+
+ADD https://raw.githubusercontent.com/aptly-dev/aptly/v1.5.0/completion.d/aptly /usr/share/bash-completion/completions/aptly
+
+RUN echo "if ! shopt -oq posix; then\n\
+  if [ -f /usr/share/bash-completion/bash_completion ]; then\n\
+    . /usr/share/bash-completion/bash_completion\n\
+  elif [ -f /etc/bash_completion ]; then\n\
+    . /etc/bash_completion\n\
+  fi\n\
+fi" >> /etc/bash.bashrc
+
+# Declare ports in use
+EXPOSE 80 8080
+
+ENV NGINX_CLIENT_MAX_BODY_SIZE=100M
+
+ENTRYPOINT [ "/opt/entrypoint.sh" ]
+
+# Start Supervisor when container starts (It calls nginx)
+CMD /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
+
+WORKDIR /opt/aptly

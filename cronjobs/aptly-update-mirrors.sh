@@ -4,7 +4,10 @@ set -e -x
 
 TIMESTAMP=`date +%Y%m%d%H%M`
 
-MIRRORS="nvidia_cuda_2204_x86_64 osrf_gazebo_jammy"
+#MIRRORS="nvidia_cuda_2204_x86_64 osrf_gazebo_jammy"
+MIRRORS="`docker exec aptly bash -x -e -c 'aptly mirror list --raw' | grep -v '^eol_'`"
+echo $MIRRORS
+
 REPOS="lcas_ros"
 DISTRO=jammy
 PUBLISH_PREFIX=hurga
@@ -42,7 +45,7 @@ RELEASE_SNAPSHOT="release_${TIMESTAMP}"
 docker exec aptly bash -x -e -c "aptly snapshot merge $RELEASE_SNAPSHOT $ALL_SNAPSHOTS"
 
 # switch the publication to the new merged snapshot
-docker exec aptly bash -x -e -c "aptly publish switch ${DISTRO} ${PUBLISH_PREFIX} ${RELEASE_SNAPSHOT}"
+docker exec aptly bash -x -e -c "aptly publish switch -batch ${DISTRO} ${PUBLISH_PREFIX} ${RELEASE_SNAPSHOT}"
 
 # drop no longer used snapshots of the merged snapshot
 docker exec aptly bash -x -e -c "aptly snapshot list --raw | grep "^release_" | xargs -n 1 -- aptly snapshot drop" || true
