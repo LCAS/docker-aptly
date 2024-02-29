@@ -2,10 +2,10 @@ version: '3'
 services:
   aptly:
     container_name: aptly
-    image: lcas.lincoln.ac.uk/lcas/aptly:master
+    image: lcas.lincoln.ac.uk/lcas/aptly-dev:master
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
 
     ports:
