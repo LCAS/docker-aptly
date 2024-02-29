@@ -1,13 +1,26 @@
 #!/bin/bash
 
-# run required merge and updates to make a new release
+set -x -e
 
 TIMESTAMP=`date +%Y%m%d%H%M`
-REPO_SNAPSHOT="lcas_${TIMESTAMP}"
-NVIDIA2204_SNAPSHOT="nvidia_cuda_2204_x86_64_${TIMESTAMP}"
-MERGED_SNAPSHOT="merged_${TIMESTAMP}"
 
-aptly snapshot create $REPO_SNAPSHOT from repo lcas_ros
-aptly snapshot create $NVIDIA2204_SNAPSHOT from mirror nvidia_cuda_2204_x86_64
-aptly snapshot merge $MERGED_SNAPSHOT $REPO_SNAPSHOT $NVIDIA2204_SNAPSHOT
-aptly publish snapshot -distribution jammy $MERGED_SNAPSHOT
+MIRRORS="nvidia_cuda_2204_x86_64"
+REPOS="lcas_ros"
+DISTRO=jammy
+
+ALL_SNAPSHOTS=""
+for MIRROR in $MIRRORS; do
+    aptly mirror update "$MIRROR"
+    aptly snapshot create "${MIRROR}_${TIMESTAMP}" from mirror $MIRROR
+    ALL_SNAPSHOTS="$ALL_SNAPSHOTS ${MIRROR}_${TIMESTAMP}"
+done
+
+for REPO in $REPOS; do
+    aptly snapshot create "${REPO}_${TIMESTAMP}" from repo $REPO
+    ALL_SNAPSHOTS="$ALL_SNAPSHOTS ${REPO}_${TIMESTAMP}"
+done
+
+MERGED_SNAPSHOT="release_${TIMESTAMP}"
+
+aptly snapshot merge $MERGED_SNAPSHOT $ALL_SNAPSHOTS
+aptly publish snapshot -distribution ${DISTRO} $MERGED_SNAPSHOT
