@@ -57,9 +57,6 @@ RUN make prepare dev system/env \
 FROM prepare as final
 COPY --from=build /root/go/bin/aptly /usr/bin/
 
-
-
-
 # Configure Nginx
 RUN rm /etc/nginx/sites-enabled/*
 
