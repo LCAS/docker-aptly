@@ -2,7 +2,7 @@
 SHELL=/bin/bash
 
 # run crontab every hours
-0 * * * *   /usr/bin/docker ps | grep aptly
+3 * * * *   /cronjobs/aptly-graph.sh
 
 # “At 04:05 on Tuesday.”
 5 4 * * 2 /cronjobs/aptly-update-mirrors.sh
