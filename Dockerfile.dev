@@ -88,7 +88,7 @@ fi" >> /etc/bash.bashrc
 # Declare ports in use
 EXPOSE 80 8080
 
-ENV NGINX_CLIENT_MAX_BODY_SIZE=100M
+ENV NGINX_CLIENT_MAX_BODY_SIZE=1000M
 
 ENTRYPOINT [ "/opt/entrypoint.sh" ]
 
