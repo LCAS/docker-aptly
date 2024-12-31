@@ -2,21 +2,42 @@
 
 set -e -x
 
+# This script updates the mirrors for a specified distribution.
+# Usage: ./aptly-update-mirrors.sh [DISTRO]
+# Arguments:
+#   DISTRO: (Optional) The name of the distribution to update mirrors for.
+#           If not provided, the script will use the default distribution (jammy).
+if [ -n "$1" ]; then
+    DISTRO="$1"
+else
+    DISTRO=${DISTRO:-jammy}
+fi
+
+if [ -n "$2" ]; then
+    REPOS="$2"
+else
+    REPOS=${REPOS:-lcas_ros}
+fi
+
+echo "running update for distribution $DISTRO"
+
 TIMESTAMP=`date +%Y%m%d%H%M`
 
 #MIRRORS="nvidia_cuda_2204_x86_64 osrf_gazebo_jammy"
-MIRRORS="`docker exec aptly bash -x -e -c 'aptly mirror list --raw' | grep -v '^eol_'`"
-echo $MIRRORS
+MIRRORS="`docker exec aptly bash -x -e -c 'aptly mirror list --raw' | grep -v '^eol_' | grep _${DISTRO}`"
+echo "mirrors to update: $MIRRORS"
 
-REPOS="lcas_ros"
-DISTRO=jammy
-PUBLISH_PREFIX=hurga
+REPOS="${REPOS}_${DISTRO}"
+
+echo "repo to update: $REPOS"
+
+PUBLISH_PREFIX=lcas
 
 # created mirror with 
 # aptly mirror create nvidia_cuda_2204_x86_64 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/ ./ 
 
 # create a initial publish from snapshot:
-# aptly publish snapshot  -architectures amd64,arm64 -distribution jammy release_202402291420 hurga
+# aptly publish snapshot  -architectures amd64,arm64 -component lcas -distribution jammy release_202402291420 lcas
 
 ALL_SNAPSHOTS=""
 for MIRROR in $MIRRORS; do
@@ -25,7 +46,7 @@ for MIRROR in $MIRRORS; do
     ALL_SNAPSHOTS="$ALL_SNAPSHOTS ${MIRROR}_${TIMESTAMP}"
 done
 
-MERGED_MIRROR_SNAPSHOT="mirrors_${TIMESTAMP}"
+MERGED_MIRROR_SNAPSHOT="mirrors_${DISTRO}_${TIMESTAMP}"
 
 docker exec aptly bash -x -e -c "aptly snapshot merge $MERGED_MIRROR_SNAPSHOT $ALL_SNAPSHOTS"
 
@@ -38,7 +59,7 @@ docker exec aptly bash -x -e -c "aptly snapshot merge $MERGED_MIRROR_SNAPSHOT $A
 LAST_REPO_SNAPSHOT=`docker exec aptly bash -x -e -c "aptly snapshot list --raw" | grep "^${REPOS}" | sort | tail -n1`
 ALL_SNAPSHOTS="$MERGED_MIRROR_SNAPSHOT $LAST_REPO_SNAPSHOT"
 
-RELEASE_SNAPSHOT="release_${TIMESTAMP}"
+RELEASE_SNAPSHOT="release_${DISTRO}_${TIMESTAMP}"
 
 
 # create a new merged snapshot

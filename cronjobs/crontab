@@ -5,5 +5,6 @@ SHELL=/bin/bash
 3 * * * *   /cronjobs/aptly-graph.sh
 
 # “At 04:05 on Tuesday.”
-5 4 * * 2 /cronjobs/aptly-update-mirrors.sh
+5 4 * * * /cronjobs/aptly-update-mirrors.sh jammy lcas_ros
+5 3 * * * /cronjobs/aptly-update-mirrors.sh noble lcas_ros
 
